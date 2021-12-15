@@ -42,15 +42,9 @@ class ViewController: UIViewController {
     }
 
     @IBAction func clearAll(_ sender: UIBarButtonItem) {
-        if !dotNodes.isEmpty{
-            for dot in dotNodes{
-                dot.removeFromParentNode()
-            }
-        }
-        dotNodes.removeAll()
-        resultNode.removeFromParentNode()
-
+       clearDisplay()
     }
+    
     @IBAction func undoNode(_ sender: UIBarButtonItem) {
         if !dotNodes.isEmpty{
             dotNodes.last?.removeFromParentNode()
@@ -62,30 +56,14 @@ class ViewController: UIViewController {
 extension ViewController: ARSCNViewDelegate{
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if dotNodes.count >= 2 {
-            for dot in dotNodes{
-                dot.removeFromParentNode()
-            }
-            dotNodes.removeAll()
-            resultNode.removeFromParentNode()
-
-        }
+        clearDisplay()
         if let touch = touches.first{
             let touchLocation = touch.location(in: sceneView)
             let result = sceneView.hitTest(touchLocation, types: .featurePoint)
             if let hitResult = result.first{
                 
                 
-                let dotGeometry = SCNSphere(radius: 0.005)
-                
-                let dotMaterial = SCNMaterial()
-                dotMaterial.diffuse.contents = UIColor.red
-                dotGeometry.materials = [dotMaterial]
-                
-                let dotNode = SCNNode()
-                dotNode.position = SCNVector3(x: hitResult.worldTransform.columns.3.x, y: hitResult.worldTransform.columns.3.y, z: hitResult.worldTransform.columns.3.z)
-                
-                dotNode.geometry = dotGeometry
+               let dotNode = createDot(atLocation: hitResult)
                 
                 sceneView.scene.rootNode.addChildNode(dotNode)
                 
@@ -98,6 +76,29 @@ extension ViewController: ARSCNViewDelegate{
         }
     }
     
+    func createDot(atLocation location: ARHitTestResult) -> SCNNode{
+        let dotGeometry = SCNSphere(radius: 0.005)
+        
+        let dotMaterial = SCNMaterial()
+        dotMaterial.diffuse.contents = UIColor.red
+        dotGeometry.materials = [dotMaterial]
+        
+        let dotNode = SCNNode()
+        dotNode.position = SCNVector3(x: location.worldTransform.columns.3.x, y: location.worldTransform.columns.3.y, z: location.worldTransform.columns.3.z)
+        
+        dotNode.geometry = dotGeometry
+        return dotNode
+    }
+    
+    func clearDisplay(){
+        if dotNodes.count >= 2 {
+            for dot in dotNodes{
+                dot.removeFromParentNode()
+            }
+            dotNodes.removeAll()
+            resultNode.removeFromParentNode()
+        }
+    }
     
     func calculate(){
         let firstDot = dotNodes[0]
